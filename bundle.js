@@ -1277,6 +1277,7 @@ class GameEngine {
   startRound(gameId) {
     if (this.rounds == this.maxRounds) {
       clearInterval(gameId);
+      updateDetails(this.players);
       return;
     }
     this.rounds++;
@@ -1819,8 +1820,8 @@ const SETTINGS = Object.freeze({
 });
 
 const PREDATOR_SETTINGS = Object.freeze({
-  PERCEPTION: 1,
-  MOVE_SPEED: 1,
+  PERCEPTION: 3,
+  MOVE_SPEED: 3,
   STRENGTH: 9,
   IMG: "./images/PREDATOR.png",
 });
@@ -2145,6 +2146,25 @@ function updateSelects(event) {
   select.datum(selectValue);
 }
 
+function checkInputs() {
+  for (let i = 0; i < playersNumber.total; i++) {
+    for (let j = i + 1; j < playersNumber.total; j++) {
+      const player1 = players[i];
+      const player2 = players[j];
+      if (
+        player1.mobility === player2.mobility &&
+        player1.reproduction === player2.reproduction &&
+        player1.perception === player2.perception &&
+        player1.strength === player2.strength
+      ) {
+        alert("Deux joueurs ne peuvent pas avoir la même configuration !");
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 /**
  * Fetch form data.
  * @returns {Promise} Promise that returns data fetch from form
@@ -2154,14 +2174,16 @@ function fetchFormData() {
   const promise = new Promise((resolve) => {
     form.on("submit", (event) => {
       event.preventDefault();
-      form.classed("removed", true);
-      D3.select("h1").classed("removed", true);
-      players.length = playersNumber.total;
-      const formData = {
-        players,
-        maxRounds: roundsNumber.total,
-      };
-      resolve(formData);
+      if (checkInputs()) {
+        form.classed("removed", true);
+        D3.select("h1").classed("removed", true);
+        players.length = playersNumber.total;
+        const formData = {
+          players,
+          maxRounds: roundsNumber.total,
+        };
+        resolve(formData);
+      }
     });
   });
   return promise;
